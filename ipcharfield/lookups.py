@@ -1,6 +1,9 @@
 from django.db.models import Lookup
 from netaddr import IPAddress
 
+from db_field.utils import leading_zeros_repr_with_delimiter_from_string_ip
+
+
 
 class RangeLookup(Lookup):
     lookup_name = 'range'
@@ -21,6 +24,11 @@ class RangeLookup(Lookup):
         return "%s BETWEEN %s AND %s" % (lhs, rhs, rhs), lhs_params
 
 
+def make_leading_zeros_for_already_completed_chunks(chunks, delimiter, chunks_size):
+    return leading_zeros_repr_with_delimiter_from_string_ip(delimiter.join(chunks),
+                                                            delimiter, chunks_size).split(delimiter)
+
+
 class ContainsLookup(Lookup):
     lookup_name = 'contains'
     contains_key = 'LIKE'
@@ -36,6 +44,10 @@ class ContainsLookup(Lookup):
         chunks_size = 3 if delimiter == '.' else 4
         value = self.rhs
         chunks = value.split(delimiter)
+        if len(chunks) > 2:
+            # Here the lookup is x.Y.z where x and z are "free" and Y is a set of numbers already fixed in the
+            # lookup, so they should be transformed into the leading zeros representation to perform the lookup
+            chunks[1:-1] = make_leading_zeros_for_already_completed_chunks(chunks[1:-1], delimiter, chunks_size)
         last_chunk = chunks[-1]
         last_chunk = '{}{}'.format(''.join(['0' for _ in range(chunks_size - len(last_chunk))]), last_chunk)
         possible_last_chunks = [last_chunk]
