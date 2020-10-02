@@ -90,7 +90,8 @@ class IExactLookup(Lookup):
     def as_sql(self, compiler, connection):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
-        return "%s = %s" % (lhs, rhs), rhs_params
+        lhs_params.extend(rhs_params)
+        return "%s = %s" % (lhs, rhs), lhs_params
 
 
 class ExactLookup(IExactLookup):
