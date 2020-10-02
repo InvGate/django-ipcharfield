@@ -1,5 +1,5 @@
 from django.db.models import Lookup
-from netaddr import IPAddress
+from netaddr import IPAddress, AddrFormatError
 
 from db_field.utils import leading_zeros_repr_with_delimiter_from_string_ip
 
