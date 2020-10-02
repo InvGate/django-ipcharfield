@@ -70,3 +70,28 @@ class ContainsLookup(Lookup):
         rhs, rhs_params = self.process_rhs(compiler, connection)
         lhs_params.extend(*rhs_params)
         return ' OR '.join(["{0} {1} {2}" for _ in range(len(*rhs_params))]).format(lhs, self.contains_key, rhs), lhs_params
+
+
+class IExactLookup(Lookup):
+    lookup_name = 'iexact'
+
+    def get_prep_lookup(self):
+        if isinstance(self.rhs, str):
+            if self.prepare_rhs and hasattr(self.lhs.output_field, 'get_prep_value'):
+                try:
+                    return self.lhs.output_field.get_prep_value(self.rhs)
+                except AddrFormatError:
+                    return 'InvalidIPAddress'
+            else:
+                return self.rhs
+        else:
+            raise LookupError('The lookup type must be a string instance')
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        return "%s = %s" % (lhs, rhs), rhs_params
+
+
+class ExactLookup(IExactLookup):
+    lookup_name = 'exact'

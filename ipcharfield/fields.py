@@ -1,7 +1,7 @@
 from django.db.models import GenericIPAddressField
 from netaddr import IPAddress
 
-from ipcharfield.lookups import RangeLookup, ContainsLookup
+from db_field.lookups import RangeLookup, ContainsLookup, IExactLookup, ExactLookup
 from ipcharfield.utils import leading_zeros_repr, ip_address_repr
 
 
@@ -45,3 +45,5 @@ class IPCharField(GenericIPAddressField):
 
 IPCharField.register_lookup(RangeLookup)
 IPCharField.register_lookup(ContainsLookup)
+IPCharField.register_lookup(IExactLookup)
+IPCharField.register_lookup(ExactLookup)
