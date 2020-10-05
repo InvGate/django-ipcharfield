@@ -68,8 +68,24 @@ class ContainsLookup(Lookup):
     def as_sql(self, compiler, connection):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
-        lhs_params.extend(*rhs_params)
+        lhs_params = self.extend_lhs_params(lhs, lhs_params, rhs_params)
         return ' OR '.join(["{0} {1} {2}" for _ in range(len(*rhs_params))]).format(lhs, self.contains_key, rhs), lhs_params
+
+    def extend_lhs_params(self, lhs, lhs_params, rhs_params):
+        params_count = lhs.count("%s")
+        if params_count > 0:
+            params = lhs_params[:params_count].copy()
+            lhs_params = lhs_params[params_count:]
+            for rhs_param in rhs_params[0]:
+                lhs_params.extend(params)
+                lhs_params.append(rhs_param)
+        else:
+            lhs_params.extend(*rhs_params)
+        return lhs_params
+
+
+class IContainsLookup(ContainsLookup):
+    lookup_name = 'icontains'
 
 
 class IExactLookup(Lookup):
